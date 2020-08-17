@@ -51,7 +51,7 @@ INSERT INTO hoge ( foo, bar) VALUES (
 INSERT INTO hoge ( foo, bar) VALUES ( ( :foo_0, :bar_0 ) , ( :foo_1, :bar_1 ) , ( :foo_2, :bar_2 ) )
 ```
 
-### simple patchwork
+### on/off patchwork
 SQL file
 ```
 SELECT
