@@ -1,10 +1,5 @@
-# [WIP]SQL Patchwork
+# SQL Patchwork
 ====
-
-# TODO
-  - parseテストの整備
-  - error処理を上に
-  - goコメント整理 1h
 
 # Overview
 SQL file based dynamic sql-query builder.
