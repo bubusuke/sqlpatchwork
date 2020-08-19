@@ -1,48 +1,70 @@
 package sqlpatchwork
 
 import (
-	"fmt"
 	"testing"
 )
 
-func TestOnOffPatchwork(t *testing.T) {
-	spw, err := NewOnOffPatchwork("test/parse_test.sql")
-	if err != nil {
-		fmt.Println(err.Error())
+func Test_E2E_SimplePatchwork(t *testing.T) {
+	_, err := NewSimplePatchwork("./test/nothing")
+	if err == nil {
+		t.Errorf("Error should be occurrd.")
 	}
-	spw.AddQueryPiecesToBuild("cond1")
-	fmt.Println(spw.BuildQuery())
-	spw.AddQueryPiecesToBuild("cond2")
-	fmt.Println(spw.BuildQuery())
-	fmt.Println(spw.BuildQueryWithTraceDesc())
-	spw, _ = NewOnOffPatchwork("test/parse_test.sql")
-	fmt.Println(spw.BuildQuery())
+
+	spw, err := NewSimplePatchwork("./test/simple_patchwork_test.sql")
+	if err != nil {
+		t.Errorf("Error should not be occurrd.")
+	}
+	spw.AddQueryPiecesToBuild("prefix")
+
+	for i := 0; i < 3; i++ {
+		if i != 0 {
+			spw.AddQueryPiecesToBuild("loopDelim")
+		}
+		spw.AddQueryPiecesToBuild("loopVal")
+	}
+
+	var expected string
+	expected = "INSERT INTO hoge_table (col1, col2) VALUES (:col1_0,:col2_0) , (:col1_1,:col2_1) , (:col1_2,:col2_2)"
+	if spw.BuildQuery() != expected {
+		t.Errorf("E2E of SimplePatchwork is failure.\nEXPECTED: %v\nACTUAL  : %v", expected, spw.BuildQuery())
+	}
+
+	expected = "INSERT /* ./test/simple_patchwork_test.sql [prefix loopVal loopDelim loopVal loopDelim loopVal] */ INTO hoge_table (col1, col2) VALUES (:col1_0,:col2_0) , (:col1_1,:col2_1) , (:col1_2,:col2_2)"
+	if spw.BuildQueryWithTraceDesc() != expected {
+		t.Errorf("E2E of SimplePatchwork is failure.\nEXPECTED: %v\nACTUAL  : %v", expected, spw.BuildQueryWithTraceDesc())
+	}
 }
 
-func TestSimplePatchwork(t *testing.T) {
-	spw, err := NewSimplePatchwork("test/simple_parse_test.sql")
+func Test_E2E_OnOffPatchwork(t *testing.T) {
+	_, err := NewOnOffPatchwork("./test/nothing")
+	if err == nil {
+		t.Errorf("Error should be occurrd.")
+	}
+
+	spw, err := NewOnOffPatchwork("./test/onoff_patchwork_test.sql")
 	if err != nil {
-		fmt.Println(err.Error())
+		t.Errorf("Error should not be occurrd.")
+	}
+	spw.AddQueryPiecesToBuild("itemTypeNotNil")
+
+	var expected string
+	expected = "SELECT s.item_code , s.sales_date , COUNT(*) AS count FROM sales_tran s INNER JOIN item_master i ON i.item_code = s.item_code WHERE 1=1 AND i.item_type = :item_type GROUP BY s.item_code , s.sales_date ORDER BY s.item_code , s.sales_date"
+	if spw.BuildQuery() != expected {
+		t.Errorf("E2E of OnOffPatchwork is failure.\nEXPECTED: %v\nACTUAL  : %v", expected, spw.BuildQuery())
 	}
 
-	data := []map[string]int{
-		{"foo": 1, "bar": 2},
-		{"foo": 11, "bar": 12},
-		{"foo": 21, "bar": 21},
+	expected = "SELECT /* ./test/onoff_patchwork_test.sql [__default itemTypeNotNil] */ s.item_code , s.sales_date , COUNT(*) AS count FROM sales_tran s INNER JOIN item_master i ON i.item_code = s.item_code WHERE 1=1 AND i.item_type = :item_type GROUP BY s.item_code , s.sales_date ORDER BY s.item_code , s.sales_date"
+	if spw.BuildQueryWithTraceDesc() != expected {
+		t.Errorf("E2E of OnOffPatchwork is failure.\nEXPECTED: %v\nACTUAL  : %v", expected, spw.BuildQueryWithTraceDesc())
 	}
-	bindData := make(map[string]interface{})
 
-	spw.AddQueryPiecesToBuild("prefix")
-	for i, v := range data {
-		if i != 0 {
-			spw.AddQueryPiecesToBuild("loop_delim")
-		}
-		spw.AddQueryPiecesToBuild("loop")
-		bindData[LoopNoAttach("foo_@@", i)] = v["foo"]
-		bindData[LoopNoAttach("bar_@@", i)] = v["bar"]
+	spw, err = NewOnOffPatchwork("./test/onoff_patchwork_test.sql")
+	if err != nil {
+		t.Errorf("Error should not be occurrd.")
 	}
-	spw.AddQueryPiecesToBuild("surfix")
-	fmt.Println(spw.BuildQuery())
-	fmt.Println(bindData)
-	fmt.Println(spw.BuildQueryWithTraceDesc())
+	expected = "SELECT s.item_code , s.sales_date , COUNT(*) AS count FROM sales_tran s WHERE 1=1 GROUP BY s.item_code , s.sales_date ORDER BY s.item_code , s.sales_date"
+	if spw.BuildQuery() != expected {
+		t.Errorf("E2E of OnOffPatchwork is failure.\nEXPECTED: %v\nACTUAL  : %v", expected, spw.BuildQuery())
+	}
+
 }

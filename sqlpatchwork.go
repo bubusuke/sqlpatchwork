@@ -51,9 +51,7 @@ func NewSimplePatchwork(sqlFilePath string) (Sqlpatchwork, error) {
 
 const loopNoIndicater = "@@"
 
+// LoopNoAttach converts "@@" to loopNo
 func LoopNoAttach(name string, loopNo int) string {
 	return strings.Replace(name, loopNoIndicater, strconv.Itoa(loopNo), -1)
-}
-func addLoopNoTobindName(query []byte, loopNo int) []byte {
-	return []byte(strings.Replace(string(query), loopNoIndicater, strconv.Itoa(loopNo), -1))
 }

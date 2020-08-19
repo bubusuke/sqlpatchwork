@@ -3,7 +3,6 @@ package sqlpatchwork
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 )
@@ -15,6 +14,8 @@ type queryPiece struct {
 	//query is content of query piece.
 	query []byte
 }
+
+var getIDError = errors.New("queryPieceID is not found. Please describe ID after '@start'. eg. /*@start ThisIsID*/")
 
 // parseResult represent the result of file parsing.
 type parseResult struct {
@@ -125,16 +126,23 @@ func (dps *domainParser) parse(reader *bufio.Reader) (*parseResult, error) {
 	return &parseResult{queryPieces: dps.queryPieces, queryPieceIDs: dps.queryPieceIDs}, nil
 }
 
+// appendQueryPieces appends query-piece to domainParser.queryPieces and initializes querybuffer and tmpIDs.
+// When queryBuffer is blank (only space or tab), not append.
 func (dps *domainParser) appendQueryPieces() error {
-	if strings.Replace(strings.Replace(string(dps.queryBuf), " ", "", -1), "	", "", -1) != "" {
+	if dps.spaceTabRemove(string(dps.queryBuf)) != "" {
 		if len(dps.tmpIDs) == 0 {
 			return errors.New("Id not found.")
 		}
 		dps.queryPieces = append(dps.queryPieces, queryPiece{IDs: dps.tmpIDs, query: dps.queryBuf})
 	}
-	dps.queryBuf = nil
+	dps.queryBuf = []byte(" ")
 	dps.tmpIDs, _ = dps.defaultValue()
 	return nil
+}
+
+// spaceTabRemove removes all spaces and tabs from str and return it.
+func (dps *domainParser) spaceTabRemove(str string) string {
+	return strings.Replace(strings.Replace(str, " ", "", -1), "	", "", -1)
 }
 
 // isBufAppend gets whether this position is in sql query or in comment.
@@ -253,12 +261,16 @@ func (dps *domainParser) existEndKey(i int, c rune, str *string) bool {
 // getIDs reads key of the query piece.
 // Query piece key is described after "@start" keyword.
 func (dps *domainParser) getID(i int, c rune, str *string) (string, error) {
-	if !dps.isInCommentBlock || !dps.isInPatchBlock {
-		return "", errors.New(fmt.Sprintf("PARSE ERROR: STRING: \"%v\" AT: %v", &str, i))
+	s := strings.Replace((*str)[i:], "	", " ", -1)
+	for {
+		if !strings.Contains(s, "  ") {
+			break
+		}
+		s = strings.Replace(s, "  ", " ", -1)
 	}
-	words := strings.Split((*str)[i:], " ")
+	words := strings.Split(s, " ")
 	if len(words) < 2 {
-		return "", errors.New("queryPieceID is not found. Please describe ID after '@start'. eg. /*@start ThisIsID*/")
+		return "", getIDError
 	}
 	return strings.Split(words[1], "*/")[0], nil
 }

@@ -31,6 +31,7 @@ func onOffParseFile(path string) (*parseResult, error) {
 	return pr, err
 }
 
+// onOffDefaultValue sets default value to tmpIDs and queryPieceIDs.
 func (dps *domainParser) onOffDefaultValue() (tmpIDs []string, queryPieceIDs map[string]bool) {
 	tmpIDs = []string{onoff_default_id}
 	queryPieceIDs = map[string]bool{onoff_default_id: true}

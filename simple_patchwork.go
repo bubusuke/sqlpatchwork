@@ -3,6 +3,7 @@ package sqlpatchwork
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -37,7 +38,7 @@ func (spw *simplePatchwork) BuildQuery() (query string) {
 	for _, ID := range spw.applyIDOrder {
 		loopNo := loopCount[ID]
 		loopCount[ID]++
-		queryBuf = append(queryBuf, addLoopNoTobindName(spw.getQueryPieces(ID), loopNo)...)
+		queryBuf = append(queryBuf, convertLoopNo(spw.getQueryPieces(ID), loopNo)...)
 	}
 	// trim and decrease spaces.
 	query = strings.Trim(string(queryBuf), " ")
@@ -73,4 +74,9 @@ func (spw *simplePatchwork) getQueryPieces(ID string) []byte {
 		}
 	}
 	return nil
+}
+
+// convertLoopNo converts "@@" to loopNo
+func convertLoopNo(query []byte, loopNo int) []byte {
+	return []byte(strings.Replace(string(query), loopNoIndicater, strconv.Itoa(loopNo), -1))
 }
