@@ -61,13 +61,13 @@ func (opw *onOffPatchwork) BuildQuery() (query string) {
 func (opw *onOffPatchwork) BuildQueryWithTraceDesc() (query string) {
 	query = opw.BuildQuery()
 	// Describe apply condition to trace.
-	traceDesc := fmt.Sprintf(" /* %v %v */ ", opw.sqlName, opw.targetIDs())
+	traceDesc := fmt.Sprintf(" /* %v %v */ ", opw.sqlName, opw.TargetIDs())
 	query = strings.Replace(query, " ", traceDesc, 1)
 	return
 }
 
 //targetIDs gets BuildQuery targets.
-func (opw *onOffPatchwork) targetIDs() []string {
+func (opw *onOffPatchwork) TargetIDs() []string {
 	IDs := []string{}
 	for key, isApply := range opw.applyIDs {
 		if isApply {

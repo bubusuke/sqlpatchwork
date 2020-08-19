@@ -12,7 +12,7 @@ type Sqlpatchwork interface {
 	AddQueryPiecesToBuild(...string) error
 
 	//targetIDs gets BuildQuery targets.
-	targetIDs() []string
+	TargetIDs() []string
 
 	//BuildQuery builds query to join query-pieces and return query.
 	BuildQuery() string
@@ -21,8 +21,8 @@ type Sqlpatchwork interface {
 	BuildQueryWithTraceDesc() string
 }
 
-// NewOnOffpatchwork parses sql file and return.
-func NewOnOffpatchwork(sqlFilePath string) (*onOffPatchwork, error) {
+// NewOnOffPatchwork parses sql file and return.
+func NewOnOffPatchwork(sqlFilePath string) (Sqlpatchwork, error) {
 	pr, err := onOffParseFile(sqlFilePath)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func NewOnOffpatchwork(sqlFilePath string) (*onOffPatchwork, error) {
 }
 
 // NewSimplePatchwork parses sql file and return.
-func NewSimplePatchwork(sqlFilePath string) (*simplePatchwork, error) {
+func NewSimplePatchwork(sqlFilePath string) (Sqlpatchwork, error) {
 	pr, err := simpleParseFile(sqlFilePath)
 	if err != nil {
 		return nil, err

@@ -54,13 +54,13 @@ func (spw *simplePatchwork) BuildQuery() (query string) {
 func (spw *simplePatchwork) BuildQueryWithTraceDesc() (query string) {
 	query = spw.BuildQuery()
 	// Describe apply condition to trace.
-	traceDesc := fmt.Sprintf(" /* %v %v */ ", spw.sqlName, spw.targetIDs())
+	traceDesc := fmt.Sprintf(" /* %v %v */ ", spw.sqlName, spw.TargetIDs())
 	query = strings.Replace(query, " ", traceDesc, 1)
 	return
 }
 
 //targetIDs gets BuildQuery targets.
-func (spw *simplePatchwork) targetIDs() []string {
+func (spw *simplePatchwork) TargetIDs() []string {
 	return spw.applyIDOrder
 }
 

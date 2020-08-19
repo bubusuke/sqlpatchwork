@@ -6,7 +6,7 @@ import (
 )
 
 func TestOnOffPatchwork(t *testing.T) {
-	spw, err := NewOnOffpatchwork("test/parse_test.sql")
+	spw, err := NewOnOffPatchwork("test/parse_test.sql")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -15,7 +15,7 @@ func TestOnOffPatchwork(t *testing.T) {
 	spw.AddQueryPiecesToBuild("cond2")
 	fmt.Println(spw.BuildQuery())
 	fmt.Println(spw.BuildQueryWithTraceDesc())
-	spw, _ = NewOnOffpatchwork("test/parse_test.sql")
+	spw, _ = NewOnOffPatchwork("test/parse_test.sql")
 	fmt.Println(spw.BuildQuery())
 }
 
