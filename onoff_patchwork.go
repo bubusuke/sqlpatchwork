@@ -14,7 +14,7 @@ const onoff_default_id = "__default"
 type onOffPatchwork struct {
 	sqlName       string
 	queryPieceIDs map[string]bool
-	queryPieces   []queryPiece
+	queryPieces   onOffQPs
 	applyIDs      map[string]bool
 }
 

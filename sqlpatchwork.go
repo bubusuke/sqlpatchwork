@@ -30,7 +30,7 @@ func NewOnOffPatchwork(sqlFilePath string) (Sqlpatchwork, error) {
 	return &onOffPatchwork{
 		sqlName:       sqlFilePath,
 		queryPieceIDs: pr.queryPieceIDs,
-		queryPieces:   pr.queryPieces,
+		queryPieces:   pr.onOffQueryPieces,
 		applyIDs:      map[string]bool{onoff_default_id: true},
 	}, nil
 }
@@ -44,7 +44,7 @@ func NewSimplePatchwork(sqlFilePath string) (Sqlpatchwork, error) {
 	return &simplePatchwork{
 		sqlName:       sqlFilePath,
 		queryPieceIDs: pr.queryPieceIDs,
-		queryPieces:   pr.queryPieces,
+		queryPieces:   pr.simpleQueryPieces,
 		applyIDOrder:  nil,
 	}, nil
 }
