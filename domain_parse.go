@@ -7,20 +7,13 @@ import (
 	"strings"
 )
 
-// queryPiece represent a part of skelton sql.
-type queryPiece struct {
-	//IDs is keys of query piece. Multiple keys can be assigned to a query piece.
-	IDs []string
-	//query is content of query piece.
-	query []byte
-}
-
 var getIDError = errors.New("queryPieceID is not found. Please describe ID after '@start'. eg. /*@start ThisIsID*/")
 
 // parseResult represent the result of file parsing.
 type parseResult struct {
-	queryPieces   []queryPiece
-	queryPieceIDs map[string]bool
+	onOffQueryPieces  []onOffQP
+	simpleQueryPieces simpleQPs
+	queryPieceIDs     map[string]bool
 }
 
 // domainParser represent the skelton parser.
@@ -30,22 +23,25 @@ type domainParser struct {
 	isInCommentOut    bool
 	queryBuf          []byte
 	tmpIDs            []string
-	queryPieces       []queryPiece
+	onOffQueryPieces  onOffQPs
+	simpleQueryPieces simpleQPs
 	queryPieceIDs     map[string]bool
 	defaultValue      func() ([]string, map[string]bool)
 	customParseID     func(string) ([]string, error)
 	checkEndedCorrect func() error
+	appendQP          func()
 }
 
 func newDomainParser() *domainParser {
 	return &domainParser{
-		isInCommentBlock: false,
-		isInPatchBlock:   false,
-		isInCommentOut:   false,
-		queryBuf:         nil,
-		tmpIDs:           nil,
-		queryPieces:      nil,
-		queryPieceIDs:    nil,
+		isInCommentBlock:  false,
+		isInPatchBlock:    false,
+		isInCommentOut:    false,
+		queryBuf:          nil,
+		tmpIDs:            nil,
+		onOffQueryPieces:  nil,
+		simpleQueryPieces: make(simpleQPs),
+		queryPieceIDs:     nil,
 	}
 }
 
@@ -89,7 +85,7 @@ func (dps *domainParser) parse(reader *bufio.Reader) (*parseResult, error) {
 			}
 			if dps.existStartKey(i, c, &line) {
 				dps.isInPatchBlock = true
-				if err = dps.appendQueryPieces(); err != nil {
+				if err = dps.appendEachQP(); err != nil {
 					return nil, err
 				}
 				tmpID, err := dps.getID(i, c, &line)
@@ -106,7 +102,7 @@ func (dps *domainParser) parse(reader *bufio.Reader) (*parseResult, error) {
 			}
 			if dps.existEndKey(i, c, &line) {
 				dps.isInPatchBlock = false
-				if err = dps.appendQueryPieces(); err != nil {
+				if err = dps.appendEachQP(); err != nil {
 					return nil, err
 				}
 			}
@@ -118,22 +114,26 @@ func (dps *domainParser) parse(reader *bufio.Reader) (*parseResult, error) {
 		if err := dps.checkEndedCorrect(); err != nil {
 			return nil, err
 		}
-		if err := dps.appendQueryPieces(); err != nil {
+		if err := dps.appendEachQP(); err != nil {
 			return nil, err
 		}
 	}
 
-	return &parseResult{queryPieces: dps.queryPieces, queryPieceIDs: dps.queryPieceIDs}, nil
+	return &parseResult{
+		onOffQueryPieces:  dps.onOffQueryPieces,
+		simpleQueryPieces: dps.simpleQueryPieces,
+		queryPieceIDs:     dps.queryPieceIDs,
+	}, nil
 }
 
-// appendQueryPieces appends query-piece to domainParser.queryPieces and initializes querybuffer and tmpIDs.
+// appendQueryPiece appends a query-piece to domainParser.queryPieces and initializes querybuffer and tmpIDs.
 // When queryBuffer is blank (only space or tab), not append.
-func (dps *domainParser) appendQueryPieces() error {
+func (dps *domainParser) appendEachQP() error {
 	if dps.spaceTabRemove(string(dps.queryBuf)) != "" {
 		if len(dps.tmpIDs) == 0 {
 			return errors.New("Id not found.")
 		}
-		dps.queryPieces = append(dps.queryPieces, queryPiece{IDs: dps.tmpIDs, query: dps.queryBuf})
+		dps.appendQP()
 	}
 	dps.queryBuf = []byte(" ")
 	dps.tmpIDs, _ = dps.defaultValue()

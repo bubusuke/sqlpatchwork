@@ -23,15 +23,22 @@ func onOffParseFile(path string) (*parseResult, error) {
 
 	reader := bufio.NewReader(f)
 	dps := newDomainParser()
-	dps.defaultValue = dps.onOffDefaultValue
-	dps.customParseID = dps.onOffCustomParseID
-	dps.checkEndedCorrect = dps.onOffCheckEndedCorrect
+	dps.di2OnOff()
 	pr, err := dps.parse(reader)
 	hasOnOffParseDone[path] = pr
 	return pr, err
 }
 
+// di2OnOff injects dependencey as a onOffPatchwork Parser.
+func (dps *domainParser) di2OnOff() {
+	dps.defaultValue = dps.onOffDefaultValue
+	dps.customParseID = dps.onOffCustomParseID
+	dps.checkEndedCorrect = dps.onOffCheckEndedCorrect
+	dps.appendQP = dps.onOffAppendQp
+}
+
 // onOffDefaultValue sets default value to tmpIDs and queryPieceIDs.
+// In this function, not set to parser's field.
 func (dps *domainParser) onOffDefaultValue() (tmpIDs []string, queryPieceIDs map[string]bool) {
 	tmpIDs = []string{onoff_default_id}
 	queryPieceIDs = map[string]bool{onoff_default_id: true}
@@ -50,4 +57,12 @@ func (dps *domainParser) onOffCheckEndedCorrect() error {
 		return nil
 	}
 	return errors.New("'@end' is missing.")
+}
+
+//onOffAppendQp appends query piece to onoff query pieace field.
+func (dps *domainParser) onOffAppendQp() {
+	dps.onOffQueryPieces = append(dps.onOffQueryPieces,
+		onOffQP{IDs: dps.tmpIDs,
+			query: dps.queryBuf,
+		})
 }

@@ -260,59 +260,62 @@ func TestDomainParser_getID(t *testing.T) {
 	}
 }
 
-func TestDomainParser_appendQueryPieces(t *testing.T) {
+func TestDomainParser_appendEachQP(t *testing.T) {
 	dps := &domainParser{
 		queryBuf: []byte("hogehoge"),
 		tmpIDs:   []string{"foo", "bar"},
-		queryPieces: []queryPiece{
-			queryPiece{
+		onOffQueryPieces: onOffQPs{
+			{
 				IDs:   []string{"a"},
 				query: []byte("b"),
 			},
 		},
 		defaultValue: func() ([]string, map[string]bool) { return []string{"ini"}, map[string]bool{"test": true} },
 	}
+	dps.appendQP = dps.onOffAppendQp
 
-	dps.appendQueryPieces()
+	dps.appendEachQP()
 	if string(dps.queryBuf) != " " {
-		t.Errorf("appendQueryPieces should initialize queryBuf.\n")
+		t.Errorf("appendEachQP should initialize queryBuf.\n")
 	}
-	for _, qp := range dps.queryPieces {
+	for _, qp := range dps.onOffQueryPieces {
 		if qp.IDs[0] == "foo" && qp.IDs[1] == "bar" {
 			if string(qp.query) != "hogehoge" {
-				t.Errorf("appendQueryPieces is something wrong.\n")
+				t.Errorf("appendEachQP is something wrong.\n")
 			}
 		} else if qp.IDs[0] == "a" {
 			if string(qp.query) != "b" {
-				t.Errorf("appendQueryPieces is something wrong.\n")
+				t.Errorf("appendEachQP is something wrong.\n")
 			}
 		} else {
-			t.Errorf("appendQueryPieces is something wrong.\n")
+			t.Errorf("appendEachQP is something wrong.\n")
 		}
 	}
 
 	dps = &domainParser{
 		queryBuf: []byte("   		   	 	 	 	 	 	"),
 		tmpIDs: []string{"foo", "bar"},
-		queryPieces: []queryPiece{
-			queryPiece{
+		onOffQueryPieces: onOffQPs{
+			{
 				IDs:   []string{"a"},
 				query: []byte("b"),
 			},
 		},
 		defaultValue: func() ([]string, map[string]bool) { return []string{"ini"}, map[string]bool{"test": true} },
 	}
-	dps.appendQueryPieces()
+	dps.appendQP = dps.onOffAppendQp
+
+	dps.appendEachQP()
 	if string(dps.queryBuf) != " " {
-		t.Errorf("appendQueryPieces should initialize queryBuf.\n")
+		t.Errorf("appendEachQP should initialize queryBuf.\n")
 	}
-	for _, qp := range dps.queryPieces {
+	for _, qp := range dps.onOffQueryPieces {
 		if qp.IDs[0] == "a" {
 			if string(qp.query) != "b" {
-				t.Errorf("appendQueryPieces is something wrong.\n")
+				t.Errorf("appendEachQP is something wrong.\n")
 			}
 		} else {
-			t.Errorf("appendQueryPieces is something wrong.\n")
+			t.Errorf("appendEachQP is something wrong.\n")
 		}
 	}
 }

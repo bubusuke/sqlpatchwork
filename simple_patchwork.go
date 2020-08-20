@@ -11,7 +11,7 @@ import (
 type simplePatchwork struct {
 	sqlName       string
 	queryPieceIDs map[string]bool
-	queryPieces   []queryPiece
+	queryPieces   simpleQPs
 	applyIDOrder  []string
 }
 
@@ -38,7 +38,7 @@ func (spw *simplePatchwork) BuildQuery() (query string) {
 	for _, ID := range spw.applyIDOrder {
 		loopNo := loopCount[ID]
 		loopCount[ID]++
-		queryBuf = append(queryBuf, convertLoopNo(spw.getQueryPieces(ID), loopNo)...)
+		queryBuf = append(queryBuf, convertLoopNo(spw.queryPieces[ID], loopNo)...)
 	}
 	// trim and decrease spaces.
 	query = strings.Trim(string(queryBuf), " ")
@@ -63,17 +63,6 @@ func (spw *simplePatchwork) BuildQueryWithTraceDesc() (query string) {
 //targetIDs gets BuildQuery targets.
 func (spw *simplePatchwork) TargetIDs() []string {
 	return spw.applyIDOrder
-}
-
-//getQueryPieces gets query-piece.
-//In simplePatchwork, querypiece ID is unique key (guaranteed at parse-process).
-func (spw *simplePatchwork) getQueryPieces(ID string) []byte {
-	for _, qp := range spw.queryPieces {
-		if qp.IDs[0] == ID {
-			return qp.query
-		}
-	}
-	return nil
 }
 
 // convertLoopNo converts "@@" to loopNo
