@@ -2,10 +2,11 @@
 ====
 
 # Overview
-SQL file based dynamic sql-query builder.
-SQL Patchwork has only build query function and doesn't have db access function.
+* SQL file based dynamic sql-query builder.
+* SQL Patchwork has only build query function and doesn't have db access function.
+* **The functions has been added that can be easily used without an SQL file (2020.08.21).**
 
-## Description
+# Description
 ### Summary
 SQL Patchwork provides a dynamic query in 3 steps.
 
@@ -16,7 +17,13 @@ SQL Patchwork provides a dynamic query in 3 steps.
 You can change the query dynamically by implementing step.2.
 All dynamic logic required implemented on Golang, so you don't need to learn the special syntax described in SQL file (as typified by MyBatis, dynamic sql library in Java ).
 
+When using without SQL files step is below
+1. Give query-pieces to SQL patchwork as arguments.
+2. Pick query-pieces on golang (same to SQL file case).
+3. Build query through concatenate picked query-pieces (same to SQL file case).
+
 ##### Image
+With SQL file.
 ![Summary.JPG](https://github.com/bubusuke/sqlpatchwork/blob/master/doc_materials/Summary.JPG)
 
 ##### Point 1
@@ -95,7 +102,7 @@ Only three.
 * `/*@end*/` : ends Query-Piece.
 * `@@` : It is replaced by the number of times Query-piece is used. If you use it repeatedly, it will be incremented as `0`,`1`. For details, please check Point 2 in SimplePatchwork.
 
-## Usage
+# Usage
 ### SimplePatchwork
 ```go
 package main
@@ -120,6 +127,16 @@ func main() {
 		{Col1: 200, Col2: "bar"},
 		{Col1: 300, Col2: "hoge"},
 	}
+
+	// in case without SQL file
+	qps := map[string]string{
+		"prefix":    "INSERT INTO hoge_table (col1, col2) VALUES",
+		"loopVal":   "(:col1_@@,:col2_@@)",
+		"loopDelim": ",",
+	}
+	spw = NewSimplePWSkipPrs("query name", qps) 
+
+	// in case with SQL file
 	spw, err := sqlpatchwork.NewSimplePatchwork("./sqls/simplePatchwork.sql")
 	if err != nil {
 		fmt.Println(err)
@@ -245,7 +262,19 @@ type Res struct {
 }
 
 func buildQuery(r *req, isTraceDesc bool) string {
-	spw, err := sqlpatchwork.NewOnOffPatchwork("./sqls/onoffPatchwork.sql")
+	// in case without SQL file
+	qps := OnOffQPs(
+		OnOffQP("SELECT s.item_code , s.sales_date , COUNT(*) AS count FROM sales_tran s"),
+		OnOffQP("INNER JOIN item_master i ON i.item_code = s.item_code", "itemTypeNotNil", "colorCodeNotNil"),
+		OnOffQP("WHERE 1=1"),
+		OnOffQP("AND i.item_type = :item_type", "itemTypeNotNil"),
+		OnOffQP("AND i.color_code = :color_code", "colorCodeNotNil"),
+		OnOffQP("GROUP BY s.item_code , s.sales_date ORDER BY s.item_code , s.sales_date"))
+
+	spw := NewOnOffPWSkipPrs("query name", qps)
+
+	// in case with SQL file
+	spw, err = sqlpatchwork.NewOnOffPatchwork("./sqls/onoffPatchwork.sql")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -440,12 +469,12 @@ func selectDemoByUsingSqlx(query string, rq *req) {
 
 
 ```
-## Install
+# Install
 ```
 go get github.com/bubusuke/sqlpatchwork
 ```
 
-## Contribution
+# Contribution
 1. Fork
 2. Create a feature branch
 3. Commit your changes
@@ -454,8 +483,8 @@ go get github.com/bubusuke/sqlpatchwork
 6. Run `gofmt -s`
 7. Create new Pull Request
 
-## Licence
+# Licence
 MIT [https://github.com/bubusuke/sqlpatchwork/blob/master/LICENSE](https://github.com/bubusuke/sqlpatchwork/blob/master/LICENSE)
 
-## Author
+# Author
 [bubusuke](https://github.com/bubusuke)
