@@ -14,8 +14,40 @@ const onoff_default_id = "__default"
 type onOffPatchwork struct {
 	sqlName       string
 	queryPieceIDs map[string]bool
-	queryPieces   onOffQPs
+	queryPieces   []onOffQP
 	applyIDs      map[string]bool
+}
+
+// NewOnOffPatchwork parses sql file and return.
+func NewOnOffPatchwork(sqlFilePath string) (Sqlpatchwork, error) {
+	pr, err := onOffParseFile(sqlFilePath)
+	if err != nil {
+		return nil, err
+	}
+	return &onOffPatchwork{
+		sqlName:       sqlFilePath,
+		queryPieceIDs: pr.queryPieceIDs,
+		queryPieces:   pr.onOffQueryPieces,
+		applyIDs:      map[string]bool{onoff_default_id: true},
+	}, nil
+}
+
+// NewOnOffPWSkipPrs requires query pieces and return Sqlpatchwork.
+// This is the function which skipped sql file parsing process.
+// You can start SQL patchwork without preparing sql files by using this method.
+func NewOnOffPWSkipPrs(sqlName string, onOffQueryPieces []onOffQP) Sqlpatchwork {
+	queryPieceIDs := make(map[string]bool)
+	for _, qp := range onOffQueryPieces {
+		for _, iD := range qp.iDs {
+			queryPieceIDs[iD] = true
+		}
+	}
+	return &onOffPatchwork{
+		sqlName:       sqlName,
+		queryPieceIDs: queryPieceIDs,
+		queryPieces:   onOffQueryPieces,
+		applyIDs:      map[string]bool{onoff_default_id: true},
+	}
 }
 
 //AddQueryPiecesToBuild adds query-pieces to BuildQuery target.
@@ -39,8 +71,9 @@ func (opw *onOffPatchwork) BuildQuery() (query string) {
 	queryBuf := make([]byte, 0, 4096)
 	// build
 	for _, qp := range opw.queryPieces {
-		for _, id := range qp.IDs {
-			if isApply, hit := opw.applyIDs[id]; hit && isApply {
+		for _, iD := range qp.iDs {
+			if isApply, hit := opw.applyIDs[iD]; hit && isApply {
+				queryBuf = append(queryBuf, []byte(" ")...)
 				queryBuf = append(queryBuf, qp.query...)
 				break
 			}

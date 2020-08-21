@@ -62,7 +62,7 @@ func (dps *domainParser) onOffCheckEndedCorrect() error {
 //onOffAppendQp appends query piece to onoff query pieace field.
 func (dps *domainParser) onOffAppendQp() {
 	dps.onOffQueryPieces = append(dps.onOffQueryPieces,
-		onOffQP{IDs: dps.tmpIDs,
+		onOffQP{iDs: dps.tmpIDs,
 			query: dps.queryBuf,
 		})
 }

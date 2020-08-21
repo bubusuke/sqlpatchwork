@@ -15,6 +15,38 @@ type simplePatchwork struct {
 	applyIDOrder  []string
 }
 
+// NewSimplePatchwork parses sql file and return Sqlpatchwork.
+func NewSimplePatchwork(sqlFilePath string) (Sqlpatchwork, error) {
+	pr, err := simpleParseFile(sqlFilePath)
+	if err != nil {
+		return nil, err
+	}
+	return &simplePatchwork{
+		sqlName:       sqlFilePath,
+		queryPieceIDs: pr.queryPieceIDs,
+		queryPieces:   pr.simpleQueryPieces,
+		applyIDOrder:  nil,
+	}, nil
+}
+
+// NewSimplePWSkipPrs requires query pieces and return Sqlpatchwork.
+// This is the function which skipped sql file parsing process.
+// You can start SQL patchwork without preparing sql files by using this method.
+func NewSimplePWSkipPrs(sqlName string, simpleQueryPieces map[string]string) Sqlpatchwork {
+	sQPs := make(map[string][]byte)
+	queryPieceIDs := make(map[string]bool)
+	for key, val := range simpleQueryPieces {
+		sQPs[key] = []byte(val)
+		queryPieceIDs[key] = true
+	}
+	return &simplePatchwork{
+		sqlName:       sqlName,
+		queryPieceIDs: queryPieceIDs,
+		queryPieces:   sQPs,
+		applyIDOrder:  nil,
+	}
+}
+
 //AddQueryPieceToBuild adds query-pieces to BuildQuery target.
 //When ID is not found, return error.
 func (spw *simplePatchwork) AddQueryPiecesToBuild(IDs ...string) error {
@@ -38,6 +70,7 @@ func (spw *simplePatchwork) BuildQuery() (query string) {
 	for _, ID := range spw.applyIDOrder {
 		loopNo := loopCount[ID]
 		loopCount[ID]++
+		queryBuf = append(queryBuf, []byte(" ")...)
 		queryBuf = append(queryBuf, convertLoopNo(spw.queryPieces[ID], loopNo)...)
 	}
 	// trim and decrease spaces.

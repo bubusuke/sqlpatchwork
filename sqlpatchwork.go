@@ -21,34 +21,6 @@ type Sqlpatchwork interface {
 	BuildQueryWithTraceDesc() string
 }
 
-// NewOnOffPatchwork parses sql file and return.
-func NewOnOffPatchwork(sqlFilePath string) (Sqlpatchwork, error) {
-	pr, err := onOffParseFile(sqlFilePath)
-	if err != nil {
-		return nil, err
-	}
-	return &onOffPatchwork{
-		sqlName:       sqlFilePath,
-		queryPieceIDs: pr.queryPieceIDs,
-		queryPieces:   pr.onOffQueryPieces,
-		applyIDs:      map[string]bool{onoff_default_id: true},
-	}, nil
-}
-
-// NewSimplePatchwork parses sql file and return.
-func NewSimplePatchwork(sqlFilePath string) (Sqlpatchwork, error) {
-	pr, err := simpleParseFile(sqlFilePath)
-	if err != nil {
-		return nil, err
-	}
-	return &simplePatchwork{
-		sqlName:       sqlFilePath,
-		queryPieceIDs: pr.queryPieceIDs,
-		queryPieces:   pr.simpleQueryPieces,
-		applyIDOrder:  nil,
-	}, nil
-}
-
 const loopNoIndicater = "@@"
 
 // LoopNoAttach converts "@@" to loopNo
