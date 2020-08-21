@@ -134,7 +134,7 @@ func main() {
 		"loopVal":   "(:col1_@@,:col2_@@)",
 		"loopDelim": ",",
 	}
-	spw = NewSimplePWSkipPrs("query name", qps) 
+	spw = sqlpatchwork.NewSimplePWSkipPrs("query name", qps) 
 
 	// in case with SQL file
 	spw, err := sqlpatchwork.NewSimplePatchwork("./sqls/simplePatchwork.sql")
@@ -263,15 +263,15 @@ type Res struct {
 
 func buildQuery(r *req, isTraceDesc bool) string {
 	// in case without SQL file
-	qps := OnOffQPs(
-		OnOffQP("SELECT s.item_code , s.sales_date , COUNT(*) AS count FROM sales_tran s"),
-		OnOffQP("INNER JOIN item_master i ON i.item_code = s.item_code", "itemTypeNotNil", "colorCodeNotNil"),
-		OnOffQP("WHERE 1=1"),
-		OnOffQP("AND i.item_type = :item_type", "itemTypeNotNil"),
-		OnOffQP("AND i.color_code = :color_code", "colorCodeNotNil"),
-		OnOffQP("GROUP BY s.item_code , s.sales_date ORDER BY s.item_code , s.sales_date"))
+	qps := sqlpatchwork.OnOffQPs(
+		sqlpatchwork.OnOffQP("SELECT s.item_code , s.sales_date , COUNT(*) AS count FROM sales_tran s"),
+		sqlpatchwork.OnOffQP("INNER JOIN item_master i ON i.item_code = s.item_code", "itemTypeNotNil", "colorCodeNotNil"),
+		sqlpatchwork.OnOffQP("WHERE 1=1"),
+		sqlpatchwork.OnOffQP("AND i.item_type = :item_type", "itemTypeNotNil"),
+		sqlpatchwork.OnOffQP("AND i.color_code = :color_code", "colorCodeNotNil"),
+		sqlpatchwork.OnOffQP("GROUP BY s.item_code , s.sales_date ORDER BY s.item_code , s.sales_date"))
 
-	spw := NewOnOffPWSkipPrs("query name", qps)
+	spw := sqlpatchwork.NewOnOffPWSkipPrs("query name", qps)
 
 	// in case with SQL file
 	spw, err = sqlpatchwork.NewOnOffPatchwork("./sqls/onoffPatchwork.sql")
