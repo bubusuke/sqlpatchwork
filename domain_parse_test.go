@@ -264,9 +264,9 @@ func TestDomainParser_appendEachQP(t *testing.T) {
 	dps := &domainParser{
 		queryBuf: []byte("hogehoge"),
 		tmpIDs:   []string{"foo", "bar"},
-		onOffQueryPieces: onOffQPs{
+		onOffQueryPieces: []onOffQP{
 			{
-				IDs:   []string{"a"},
+				iDs:   []string{"a"},
 				query: []byte("b"),
 			},
 		},
@@ -279,11 +279,11 @@ func TestDomainParser_appendEachQP(t *testing.T) {
 		t.Errorf("appendEachQP should initialize queryBuf.\n")
 	}
 	for _, qp := range dps.onOffQueryPieces {
-		if qp.IDs[0] == "foo" && qp.IDs[1] == "bar" {
+		if qp.iDs[0] == "foo" && qp.iDs[1] == "bar" {
 			if string(qp.query) != "hogehoge" {
 				t.Errorf("appendEachQP is something wrong.\n")
 			}
-		} else if qp.IDs[0] == "a" {
+		} else if qp.iDs[0] == "a" {
 			if string(qp.query) != "b" {
 				t.Errorf("appendEachQP is something wrong.\n")
 			}
@@ -295,9 +295,9 @@ func TestDomainParser_appendEachQP(t *testing.T) {
 	dps = &domainParser{
 		queryBuf: []byte("   		   	 	 	 	 	 	"),
 		tmpIDs: []string{"foo", "bar"},
-		onOffQueryPieces: onOffQPs{
+		onOffQueryPieces: []onOffQP{
 			{
-				IDs:   []string{"a"},
+				iDs:   []string{"a"},
 				query: []byte("b"),
 			},
 		},
@@ -310,7 +310,7 @@ func TestDomainParser_appendEachQP(t *testing.T) {
 		t.Errorf("appendEachQP should initialize queryBuf.\n")
 	}
 	for _, qp := range dps.onOffQueryPieces {
-		if qp.IDs[0] == "a" {
+		if qp.iDs[0] == "a" {
 			if string(qp.query) != "b" {
 				t.Errorf("appendEachQP is something wrong.\n")
 			}

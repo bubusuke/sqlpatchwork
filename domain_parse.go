@@ -23,7 +23,7 @@ type domainParser struct {
 	isInCommentOut    bool
 	queryBuf          []byte
 	tmpIDs            []string
-	onOffQueryPieces  onOffQPs
+	onOffQueryPieces  []onOffQP
 	simpleQueryPieces simpleQPs
 	queryPieceIDs     map[string]bool
 	defaultValue      func() ([]string, map[string]bool)
